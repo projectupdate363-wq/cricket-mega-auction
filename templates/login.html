@@ -1,36 +1,98 @@
 {% extends "base.html" %}
+
+{% block title %}Namma Cricket - Login{% endblock %}
+
 {% block content %}
 <div class="login-container">
-  <form id="loginForm" class="login-form">
-    <h2>Login</h2>
-    <input type="text" id="username" placeholder="Username" required>
-    <input type="password" id="password" placeholder="Password" required>
-    <button type="submit">Login</button>
-  </form>
+    <div class="login-card">
+        <h1 class="app-title">NAMMA CRICKET</h1>
+        <p style="text-align: center; margin-bottom: 30px; color: rgba(255,255,255,0.8); font-size: 1.1rem;">
+            🏏 Live Cricket Auction Platform
+        </p>
+        
+        <form id="loginForm" class="login-form">
+            <div class="form-group">
+                <input type="text" id="username" class="form-input" placeholder="Enter Username" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" class="form-input" placeholder="Enter Password" required>
+            </div>
+            <button type="submit" class="login-btn">
+                <span id="loginText">LOGIN TO AUCTION</span>
+                <span id="loginLoader" class="loading hidden"></span>
+            </button>
+        </form>
+        
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
+            <h4 style="color: var(--bright-green); margin-bottom: 15px; text-align: center;">Login Instructions:</h4>
+            <div style="font-size: 0.9rem; color: rgba(255,255,255,0.8); line-height: 1.6;">
+                <p><strong>👨‍💼 Admin:</strong> username: <code>admin</code>, password: <code>admin123</code></p>
+                <p><strong>💰 Bidder:</strong> username: <code>bidder{name}</code>, password: <code>bidder@123</code></p>
+                <p><strong>👀 Spectator:</strong> Any username/password combination</p>
+            </div>
+        </div>
+    </div>
 </div>
+
 <script>
-  const loginForm = document.getElementById('loginForm');
-  loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const response = await fetch('/login', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({username, password})
-      });
-      const data = await response.json();
-      if (data.success) {
-          if (data.is_admin) {
-              window.location.href = '/admin';
-          } else {
-              window.location.href = '/bidder';
-          }
-      } else {
-          alert(data.message || "Login failed");
-      }
-  });
+const loginForm = document.getElementById('loginForm');
+const loginText = document.getElementById('loginText');
+const loginLoader = document.getElementById('loginLoader');
+
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Show loading state
+    loginText.classList.add('hidden');
+    loginLoader.classList.remove('hidden');
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    
+    try {
+        const response = await fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({username, password})
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Redirect based on user type
+            switch(data.user_type) {
+                case 'admin':
+                    window.location.href = '/admin';
+                    break;
+                case 'bidder':
+                    window.location.href = '/bidder';
+                    break;
+                case 'spectator':
+                    window.location.href = '/spectator';
+                    break;
+                default:
+                    window.location.href = '/';
+            }
+        } else {
+            throw new Error(data.message || 'Login failed');
+        }
+    } catch (error) {
+        // Reset loading state
+        loginText.classList.remove('hidden');
+        loginLoader.classList.add('hidden');
+        
+        // Show error
+        alert(error.message || 'Login failed. Please try again.');
+    }
+});
+
+// Add enter key support
+document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        loginForm.dispatchEvent(new Event('submit'));
+    }
+});
 </script>
 {% endblock %}
