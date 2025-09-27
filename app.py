@@ -75,7 +75,7 @@ def login():
     password = data.get('password')
 
     # Admin Login
-    if username == 'admin' and password == 'admin123':
+    if username == 'admin' and password == 'muruga@123':
         user = User(username, 'admin')
         users[username] = user
         login_user(user)
